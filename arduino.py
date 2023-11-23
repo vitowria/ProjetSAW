@@ -1,47 +1,47 @@
+from PyQt6.QtCore import QThread, pyqtSignal
 import serial
-import binascii
-import threading
+import time
 
-class Arduino:
+class ArduinoThread(QThread):
+    finished_signal = pyqtSignal(str)
 
-    porta = None
-    mySerial = None
-    value = None
-    stopFlag = False
+    def __init__(self, port, input_config_eletrov1, input_config_eletrov2, main_class):
+        super().__init__()
+        self.port = port
+        self.input_config_eletrov1 = input_config_eletrov1
+        self.input_config_eletrov2 = input_config_eletrov2
+        self.main_class = main_class
 
-    def __init__(self, porta='COM1', baud_rate=9600):
-        self.porta = porta
-        self.baud_rate = baud_rate
-        self.mySerial = serial.Serial(porta, baud_rate, timeout=0)
-        self.value = None
-        self.stopFlag = False
-    
-    def empty_buffer(self):
-        msg = "Vazio"
-        while msg!=b'':
-            msg = self.mySerial.read()
-    
-    def start(self):
-        self.thread = threading.Thread(target=self.read)
-        self.thread.start()
-    
-    def stop(self):
-        self.stopFlag = True
+    def run(self):
+        print('111111')
+        #try:
+        print('aqui1')
+        arduino = serial.Serial(self.port, 9600)
+        #time.sleep(2)  # Aguarda a inicialização do Arduino
 
-    def read(self):
-        total = ""
-        while self.stopFlag==False:
-            try:
-                readBytes = self.mySerial.read()
-                msg = binascii.hexlify(readBytes)
-                msg = msg.decode('utf-8')
-                bytes_object = bytes.fromhex(msg)
-                ascii_string = bytes_object.decode("ASCII")
-                if ';' in ascii_string:
-                    self.value = total
-                    total=''
-                else:
-                    total += ascii_string
-            except:
-                pass
-        return total
+        # Lê os valores atuais da interface gráfica
+        #config_eletrov1_value = self.input_config_eletrov1.text()
+        #config_eletrov2_value = self.input_config_eletrov2.text()
+
+        print('aqui2')
+        message_arduino = f"{self.main_class.config_eletrov1_value};{self.main_class.config_eletrov2_value};"
+
+        print(self.main_class.config_eletrov1_value)
+        print(self.main_class.config_eletrov2_value)
+        #print()
+
+        #print('aqui3')
+        arduino.write(message_arduino.encode())
+
+
+        #print('aqui4')
+        #answer_arduino = arduino.readline().decode().strip()
+        
+        #print(f"Arduino says: {answer_arduino}")
+
+        arduino.close()
+        #self.finished_signal.emit("Comunicação bem-sucedida!")
+        print('deu certo')
+        # except Exception as e:
+        #     self.finished_signal.emit(f"Erro: {str(e)}")
+        #     print('nao foi')
