@@ -1,3 +1,5 @@
+#mets le temps total, elever le concentration initial
+
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
@@ -9,8 +11,10 @@ import pyqtgraph as pg
 import propar
 from analyseur_reseauV2 import (FieldFox)
 from analyseur_reseauV2 import MyApp as AffichageAR
-from arduino import Arduino
-
+from arduino import ArduinoThread
+import serial
+#import pyserial
+#from PyQt6.QtCore import QCoreApplication
 
 def InitPropar():
         cmd2 = 'pip install bronkhorst-propar'
@@ -25,7 +29,9 @@ class MyApp(QMainWindow):
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
+        
 
+    
         try:
             self.fox = FieldFox()
         except ValueError as e:
@@ -216,12 +222,15 @@ class MyApp(QMainWindow):
         self.AR_entry8 = None
         self.AR_entry9 = None
 
+       
+    
     def InitControlers(self):
- 
+        
+
         #variables to save the entry values for the controlers and arduino
 
-        #self.config_eletrov1_value = self.input_config_eletrov1.text()
-        #self.config_eletrov2_value = self.input_config_eletrov2.text()
+        self.config_eletrov1_value = self.input_config_eletrov1.text()
+        self.config_eletrov2_value = self.input_config_eletrov2.text()
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
@@ -236,37 +245,30 @@ class MyApp(QMainWindow):
         self.AR_entry8 = self.input_AR_entry8.text()
         self.AR_entry9 = self.input_AR_entry9.text()
 
-
+        
         # Real number verification
-        if not self.is_real_number(self.config_eletrov1_value) or not self.is_real_number(self.config_eletrov2_value) or \
-                not self.is_real_number(self.controlador_debito_value) or not self.is_real_number(self.controlador_pressao_value):
-            self.show_warning("Incorrect input", "Put real numbers")
-            return
+        #if not self.is_real_number(self.config_eletrov1_value) or not self.is_real_number(self.config_eletrov2_value) or \
+        #        not self.is_real_number(self.controlador_debito_value) or not self.is_real_number(self.controlador_pressao_value):
+        #    self.show_warning("Incorrect input", "Put real numbers")
+        #    return
         # Verificação outra inventar
 
         # calls the functions
         self.InitArduino()
-        self.debit_pression()
+        #self.debit_pression()
 
     def InitArduino(self):
-        cmd1 = 'pip3 install serial'
-        os.system(cmd1)
-        import serial
-    
-        port_serial = '/dev/cu.usbmodem14101' 
-        arduino = serial.Serial(port_serial, 9600)
-        time.sleep(2)
+        # Iniciar a thread do Arduino
+        self.config_eletrov1_value = self.input_config_eletrov1.text()
+        self.config_eletrov2_value = self.input_config_eletrov2.text()
+        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14101', self.input_config_eletrov1, self.input_config_eletrov2, self)
+        self.arduino_thread.finished_signal.connect(self.arduino_finished) 
 
-        config_eletrov1_value = self.input_config_eletrov1.text()
-        config_eletrov2_value = self.input_config_eletrov2.text()
+        self.arduino_thread.start()
 
-        message_arduino = config_eletrov1_value + ';' + config_eletrov2_value + ';'
-        arduino.write(message_arduino.encode())
-
-        answer_arduino = arduino.readline().decode().strip()
-        print(f"Arduino says: {answer_arduino}")
-
-        arduino.close()
+    def arduino_finished(self, result):
+        # Manipular o resultado (exibição, etc.)
+        print('cabou')
 
 
     def debit_pression(self):
