@@ -141,7 +141,7 @@ class MyApp(QMainWindow):
         self.input_config_eletrov1 = QLineEdit()
         center_layout.addWidget(self.input_config_eletrov1)
         
-        label_electrovannes2 = QLabel("Initial Concentration [ppm]")
+        label_electrovannes2 = QLabel("Total time [sec]")
         center_layout.addWidget(label_electrovannes2)
         self.input_config_eletrov2 = QLineEdit()
         center_layout.addWidget(self.input_config_eletrov2)
@@ -255,13 +255,16 @@ class MyApp(QMainWindow):
 
         # calls the functions
         self.InitArduino()
-        #self.debit_pression()
+        self.debit_pression()
 
     def InitArduino(self):
         # Iniciar a thread do Arduino
         self.config_eletrov1_value = self.input_config_eletrov1.text()
         self.config_eletrov2_value = self.input_config_eletrov2.text()
-        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14101', self.input_config_eletrov1, self.input_config_eletrov2, self)
+        self.controlador_debito_value = self.input_controlador_debito.text()
+        self.controlador_pressao_value = self.input_controlador_pressao.text()
+
+        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14101', self.input_config_eletrov1, self.input_config_eletrov2,self.input_controlador_debito, self.input_controlador_pressao, self)
         self.arduino_thread.finished_signal.connect(self.arduino_finished) 
 
         self.arduino_thread.start()
