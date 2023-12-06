@@ -1,4 +1,4 @@
-#mets le temps total, elever le concentration initial
+#mets le temps total, élever la concentration initiale
 
 import sys
 from PyQt6.QtWidgets import (
@@ -48,7 +48,7 @@ class MyApp(QMainWindow):
         fonte_grande = QFont()
         fonte_grande.setPointSize(16)
 
-        #Configurations Analyseur de Reseau
+        #Configuration Analyseur de Reseau
         label_ARconfiguracoes = QLabel("Network Analyzer's Configurations ")
         left_layout.addWidget(label_ARconfiguracoes)
         label_ARconfiguracoes.setFont(fonte_grande)
@@ -130,7 +130,7 @@ class MyApp(QMainWindow):
 
         center_layout = QVBoxLayout()
         
-        # Configurations electrovannes
+        #Configurations electrovannes
         label_configuracoes = QLabel("Electrovanne's Configurations")
         center_layout.addWidget(label_configuracoes)
 
@@ -146,7 +146,7 @@ class MyApp(QMainWindow):
         self.input_config_eletrov2 = QLineEdit()
         center_layout.addWidget(self.input_config_eletrov2)
 
-        # Débit controler
+        #Flow controler
         label_debito = QLabel("Flow controler")
         center_layout.addWidget(label_debito)
         fonte_grande = QFont()
@@ -159,7 +159,7 @@ class MyApp(QMainWindow):
         self.input_controlador_debito = QLineEdit()
         center_layout.addWidget(self.input_controlador_debito)
 
-        # Pression controler
+        #Pressure controler
         label_pressao = QLabel("Pression Controler")
         center_layout.addWidget(label_pressao)
         fonte_grande = QFont()
@@ -173,7 +173,7 @@ class MyApp(QMainWindow):
         center_layout.addWidget(self.input_controlador_pressao)
     
         center_layout.addWidget(label_0)
-        # Buttons
+        #Buttons
         self.start_button = QPushButton("Start")
         self.start_button.setStyleSheet("background-color: green;")
         center_layout.addWidget(self.start_button)
@@ -185,17 +185,17 @@ class MyApp(QMainWindow):
 
         layout.addLayout(center_layout)
 
-        # Layout graphs -> right
+        #Layout graphs -> right
         right_layout = QVBoxLayout()
         
         #######(not yet in real time)
-        # Graph 1
+        #Graph 1
         self.plot_widget1 = pg.PlotWidget(title="Amplitude")
         right_layout.addWidget(self.plot_widget1)
         self.plot1 = self.plot_widget1.plot(pen=pg.mkPen('b', width=2))
         self.plot_data1 = []
 
-        # Graph 2 
+        #Graph 2 
         self.plot_widget2 = pg.PlotWidget(title="Phase")
         right_layout.addWidget(self.plot_widget2)
         self.plot2 = self.plot_widget2.plot(pen=pg.mkPen('r', width=2))
@@ -211,7 +211,7 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = None
         self.controlador_pressao_value = None
 
-        # Variables to store the entry values from the AR
+        #Variables to store the entry values from the AR
         self.AR_entry1 = None
         self.AR_entry2 = None
         self.AR_entry3 = None
@@ -234,7 +234,7 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        #variables to save the entry values for the AR
+        #Variables to save the entry values for the AR
         self.AR_entry1 = self.input_AR_entry1.text()
         self.AR_entry2 = self.input_AR_entry2.text()
         self.AR_entry3 = self.input_AR_entry3.text()
@@ -246,19 +246,19 @@ class MyApp(QMainWindow):
         self.AR_entry9 = self.input_AR_entry9.text()
 
         
-        # Real number verification
+        #Real number verification
         #if not self.is_real_number(self.config_eletrov1_value) or not self.is_real_number(self.config_eletrov2_value) or \
         #        not self.is_real_number(self.controlador_debito_value) or not self.is_real_number(self.controlador_pressao_value):
         #    self.show_warning("Incorrect input", "Put real numbers")
         #    return
-        # Verificação outra inventar
+        #  Check other invent
 
         # calls the functions
         self.InitArduino()
         self.debit_pression()
 
     def InitArduino(self):
-        # Iniciar a thread do Arduino
+        #Init a thread of Arduino
         self.config_eletrov1_value = self.input_config_eletrov1.text()
         self.config_eletrov2_value = self.input_config_eletrov2.text()
         self.controlador_debito_value = self.input_controlador_debito.text()
@@ -270,29 +270,29 @@ class MyApp(QMainWindow):
         self.arduino_thread.start()
 
     def arduino_finished(self, result):
-        # Manipular o resultado (exibição, etc.)
+        #Manipulate the result (display, etc.)
         print('cabou')
 
 
     def debit_pression(self):
         InitPropar()
-        # Prends le valeur donné par l'utilisateurs sur l'interface 
+        #Take the value given by the user on the interface 
         v_debit = float(self.controlador_debito_value) 
         v_pression = float(self.controlador_pressao_value) 
 
-        # Connexion au contrôleur de débit (par défaut channel=1), ajuster le port COM
-        instrument_debit = propar.instrument('COM4', channel=1) #Changer les COM4 et COM5 en function du port USB
+        #Connexion to the flow controler (by default channel=1), Adjust COM Port
+        instrument_debit = propar.instrument('COM4', channel=1) #Change COM4 and COM5 ports in fonction of the USB port
         instrument_pression = propar.instrument('COM5', channel=1)
         
-        # Mettre le paramètre 12 à 0 pour contrôler par le bus RS232
+        #Put the parameter 12 at 0 to control the RS232 bus
         instrument_debit.writeParameter(12, 0)
         instrument_pression.writeParameter(12, 0)
         
-        # Moduler la valeur du débit entre 0 et 32000 (0 - 100%)
+        #Modulate the flow value between 0 and 32000 (0 - 100%)
         instrument_pression.writeParameter(9, int(v_pression))
         instrument_debit.writeParameter(9, int(v_debit))
         
-        # Verification de la valeur envoyée précédemment
+        #Verification of the previously sent value
         print(instrument_pression.readParameter(9))
         print(instrument_debit.readParameter(9))
     
@@ -305,7 +305,7 @@ class MyApp(QMainWindow):
             return False
 
     def show_warning(self, title, message):
-        # show error messages in the interface
+        #Show error messages in the interface
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(title)
