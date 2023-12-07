@@ -1,4 +1,4 @@
-#mets le temps total, élever la concentration initiale
+#mets le temps total, elever le concentration initial
 
 import sys
 from PyQt6.QtWidgets import (
@@ -13,6 +13,8 @@ from analyseur_reseauV2 import (FieldFox)
 from analyseur_reseauV2 import MyApp as AffichageAR
 from arduino import ArduinoThread
 import serial
+import pandas as pd
+
 #import pyserial
 #from PyQt6.QtCore import QCoreApplication
 
@@ -33,6 +35,7 @@ class MyApp(QMainWindow):
 
     
         try:
+            #self.myff = AffichageAR
             self.fox = FieldFox()
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
@@ -48,7 +51,7 @@ class MyApp(QMainWindow):
         fonte_grande = QFont()
         fonte_grande.setPointSize(16)
 
-        #Configuration Analyseur de Reseau
+        #Configurations Analyseur de Reseau
         label_ARconfiguracoes = QLabel("Network Analyzer's Configurations ")
         left_layout.addWidget(label_ARconfiguracoes)
         label_ARconfiguracoes.setFont(fonte_grande)
@@ -83,7 +86,7 @@ class MyApp(QMainWindow):
         self.button1 = QPushButton("Initialization of the network analyzer")
         self.button1.setStyleSheet("background-color:  #33b2ff;")
         left_layout.addWidget(self.button1)
-        self.button1.clicked.connect(self.initialize_fieldfox)
+        self.button1.clicked.connect(self.initialize)
 
         label_ar5 = QLabel("Target frequency [Hz] :\n")
         left_layout.addWidget(label_ar5)
@@ -130,50 +133,50 @@ class MyApp(QMainWindow):
 
         center_layout = QVBoxLayout()
         
-        #Configurations electrovannes
+        # Configurations electrovannes
         label_configuracoes = QLabel("Electrovanne's Configurations")
         center_layout.addWidget(label_configuracoes)
 
         label_configuracoes.setFont(fonte_grande)
 
-        label_electrovannes1 = QLabel("Final Concentration [ppm]")
+        label_electrovannes1 = QLabel("Final Concentration [mol/L]")
         center_layout.addWidget(label_electrovannes1)
         self.input_config_eletrov1 = QLineEdit()
         center_layout.addWidget(self.input_config_eletrov1)
         
-        label_electrovannes2 = QLabel("Total time [sec]")
+        label_electrovannes2 = QLabel("Initial Concentration [mol/L]")
         center_layout.addWidget(label_electrovannes2)
         self.input_config_eletrov2 = QLineEdit()
         center_layout.addWidget(self.input_config_eletrov2)
 
-        #Flow controler
+        # Débit controler
         label_debito = QLabel("Flow controler")
         center_layout.addWidget(label_debito)
         fonte_grande = QFont()
         fonte_grande.setPointSize(16)
         label_debito.setFont(fonte_grande)
 
-        label_debit1 = QLabel("Flux [ml/min]")
+        label_debit1 = QLabel("Flux [ml/s]")
         center_layout.addWidget(label_debit1)
 
         self.input_controlador_debito = QLineEdit()
         center_layout.addWidget(self.input_controlador_debito)
 
-        #Pressure controler
+        # Pression controler
         label_pressao = QLabel("Pression Controler")
         center_layout.addWidget(label_pressao)
         fonte_grande = QFont()
         fonte_grande.setPointSize(16)
         label_pressao.setFont(fonte_grande)
 
-        label_pressao1 = QLabel("Pression [atm]")
+        label_pressao1 = QLabel("Pression [bar]")
         center_layout.addWidget(label_pressao1)
 
         self.input_controlador_pressao = QLineEdit()
         center_layout.addWidget(self.input_controlador_pressao)
     
         center_layout.addWidget(label_0)
-        #Buttons
+        # Buttons
         self.start_button = QPushButton("Start")
         self.start_button.setStyleSheet("background-color: green;")
         center_layout.addWidget(self.start_button)
@@ -185,17 +188,17 @@ class MyApp(QMainWindow):
 
         layout.addLayout(center_layout)
 
-        #Layout graphs -> right
+        # Layout graphs -> right
         right_layout = QVBoxLayout()
         
         #######(not yet in real time)
-        #Graph 1
+        # Graph 1
         self.plot_widget1 = pg.PlotWidget(title="Amplitude")
         right_layout.addWidget(self.plot_widget1)
         self.plot1 = self.plot_widget1.plot(pen=pg.mkPen('b', width=2))
         self.plot_data1 = []
 
-        #Graph 2 
+        # Graph 2 
         self.plot_widget2 = pg.PlotWidget(title="Phase")
         right_layout.addWidget(self.plot_widget2)
         self.plot2 = self.plot_widget2.plot(pen=pg.mkPen('r', width=2))
@@ -211,7 +214,7 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = None
         self.controlador_pressao_value = None
 
-        #Variables to store the entry values from the AR
+        # Variables to store the entry values from the AR
         self.AR_entry1 = None
         self.AR_entry2 = None
         self.AR_entry3 = None
@@ -234,7 +237,7 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        #Variables to save the entry values for the AR
+        #variables to save the entry values for the AR
         self.AR_entry1 = self.input_AR_entry1.text()
         self.AR_entry2 = self.input_AR_entry2.text()
         self.AR_entry3 = self.input_AR_entry3.text()
@@ -246,53 +249,52 @@ class MyApp(QMainWindow):
         self.AR_entry9 = self.input_AR_entry9.text()
 
         
-        #Real number verification
+        # Real number verification
         #if not self.is_real_number(self.config_eletrov1_value) or not self.is_real_number(self.config_eletrov2_value) or \
         #        not self.is_real_number(self.controlador_debito_value) or not self.is_real_number(self.controlador_pressao_value):
         #    self.show_warning("Incorrect input", "Put real numbers")
         #    return
-        #  Check other invent
+        # Verificação outra inventar
 
         # calls the functions
         self.InitArduino()
-        self.debit_pression()
+        #self.debit_pression()
 
     def InitArduino(self):
-        #Init a thread of Arduino
+        # Iniciar a thread do Arduino
         self.config_eletrov1_value = self.input_config_eletrov1.text()
         self.config_eletrov2_value = self.input_config_eletrov2.text()
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14101', self.input_config_eletrov1, self.input_config_eletrov2,self.input_controlador_debito, self.input_controlador_pressao, self)
+        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14201', self.input_config_eletrov1, self.input_config_eletrov2, self.input_controlador_debito, self.input_controlador_pressao, self)
         self.arduino_thread.finished_signal.connect(self.arduino_finished) 
-
         self.arduino_thread.start()
 
     def arduino_finished(self, result):
-        #Manipulate the result (display, etc.)
+        # Manipular o resultado (exibição, etc.)
         print('cabou')
 
 
     def debit_pression(self):
         InitPropar()
-        #Take the value given by the user on the interface 
+        # Prends le valeur donné par l'utilisateurs sur l'interface 
         v_debit = float(self.controlador_debito_value) 
         v_pression = float(self.controlador_pressao_value) 
 
-        #Connexion to the flow controler (by default channel=1), Adjust COM Port
-        instrument_debit = propar.instrument('COM4', channel=1) #Change COM4 and COM5 ports in fonction of the USB port
+        # Connexion au contrôleur de débit (par défaut channel=1), ajuster le port COM
+        instrument_debit = propar.instrument('COM4', channel=1) #Changer les COM4 et COM5 en function du port USB
         instrument_pression = propar.instrument('COM5', channel=1)
         
-        #Put the parameter 12 at 0 to control the RS232 bus
+        # Mettre le paramètre 12 à 0 pour contrôler par le bus RS232
         instrument_debit.writeParameter(12, 0)
         instrument_pression.writeParameter(12, 0)
         
-        #Modulate the flow value between 0 and 32000 (0 - 100%)
+        # Moduler la valeur du débit entre 0 et 32000 (0 - 100%)
         instrument_pression.writeParameter(9, int(v_pression))
         instrument_debit.writeParameter(9, int(v_debit))
         
-        #Verification of the previously sent value
+        # Verification de la valeur envoyée précédemment
         print(instrument_pression.readParameter(9))
         print(instrument_debit.readParameter(9))
     
@@ -305,21 +307,40 @@ class MyApp(QMainWindow):
             return False
 
     def show_warning(self, title, message):
-        #Show error messages in the interface
+        # show error messages in the interface
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Icon.Warning)
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
         msg_box.exec()
 
-    def initialize_fieldfox(self):
-        self.fox.initialize(
-            self.input_AR_entry1.text(),
-            self.input_AR_entry2.text(),
-            self.input_AR_entry3.text(),
-            self.input_AR_entry4.text(),
-            self.input_AR_entry9.text()
-        )
+  
+    def initialize(self):
+        center_freq = self.input_AR_entry1.text()
+        span = self.input_AR_entry2.text()
+        bandwidth = self.input_AR_entry3.text()
+        averages = self.input_AR_entry4.text()
+        coefficient = self.input_AR_entry9.text()
+
+        # Debugging: Print the values to verify they are not empty
+        print(f"Center Frequency: {center_freq}")
+        print(f"Span: {span}")
+        print(f"Bandwidth: {bandwidth}")
+        print(f"Averages: {averages}")
+        print(f"Coefficient: {coefficient}")
+
+        try:
+            center_freq = float(center_freq)
+            span = float(span)
+            bandwidth = float(bandwidth)
+            averages = int(averages)
+        except ValueError:
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid numeric values (bandwitdh, span, center frequency, averages ).")
+            return
+
+        #self.myff.averages = averages
+
+        self.fox.initialize(center_freq, span, bandwidth, averages, coefficient)
     
     def spectrum_normalization(self):
         center_freq_text = self.input_AR_entry1.text()
@@ -332,15 +353,15 @@ class MyApp(QMainWindow):
 
         data_normalization_spectrum = self.fox.get_data_normalisation_spectrum()
         if data_normalization_spectrum is not None:
-            self.show_info("Normalization Complete", "Spectrum normalization is complete.")
+            print("Normalization Complete\n", "Spectrum normalization is complete.")
         else:
             self.show_warning("Normalization Error", "Failed to perform spectrum normalization.")
 
     def amplitude_normalization(self):
-        self.initialize_fieldfox()
+        self.initialize()
         data_normalisation_amplitude = self.fox.get_data_normalisation_amplitude()
         if data_normalisation_amplitude is not None:
-            self.show_info("Amplitude Complete", "Spectrum amplitude is complete.")
+            print("Amplitude Complete\n" "Spectrum amplitude is complete.")
         else:
             self.show_warning("Amplitude Error", "Failed to perform spectrum amplitude.")
 
