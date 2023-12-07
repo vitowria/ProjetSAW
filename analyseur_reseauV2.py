@@ -17,14 +17,19 @@ from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
 class FieldFox():
-
-    def __init__(self, visa_id="USB0::0x2A8D::0x5C18::MY59221135::0::INSTR"):
+#MY59221135
+#MY59221424
+    def __init__(self, visa_id="USB0::0x2A8D::0x5C18::MY59221424::0::INSTR"):
         print("Criando instância do FieldFox")
         rm = pyvisa.ResourceManager()
         self.inst = rm.open_resource(visa_id, read_termination='\n')
         self.inst.timeout = 1000000
         self.spectrum = None
+        #self.spectrum_normalisation = None 
         self.amplitude = None
+        self.averages = 1
+        self.frequencies = np.linspace(self.start_frequency, self.stop_frequency, self.sweep_point_number)
+
         self.Frequence = 0
         self.counter = 0
 
@@ -126,19 +131,19 @@ class FieldFox():
         return array2
 
     def find_frequence(self, Frequence):
-        counter = 0
-        while self.frequencies[counter] < Frequence:
+        counter = 0  # Adicione essa linha para garantir que o counter seja inicializado
+        while counter < len(self.frequencies) and float(self.frequencies[counter]) < float(Frequence):
             counter = counter + 1
         return counter
 
     def poll_single_value(self, Frequence, fichier):
-
+        counter = self.find_frequence(Frequence)
         self.buffer_array = np.zeros((2, 10000)) * np.nan
         self.buffer_array2 = np.zeros((2, 10000)) * np.nan
         self.Liste = np.zeros((1601, 3)) * np.nan
         self.running = True
         self.start_time = None
-        counter = self.find_frequence(Frequence)
+        #counter = self.find_frequence(Frequence)
         print(counter)
         self.buffer_array = ([], [])
         self.buffer_array2 = ([], [])
@@ -158,6 +163,7 @@ class FieldFox():
             self.Liste[:, 2] = self.amplitude
             df = pd.DataFrame(self.Liste, columns=['Frequence', 'Phase', 'Amplitude'])
             df.to_csv(fichier)
+            #df.to_csv('fichier.csv', index=False)
 
             self.buffer_array[0].append(temps)
             self.buffer_array[1].append(data[counter])
@@ -165,7 +171,7 @@ class FieldFox():
             self.buffer_array2[1].append(data2[counter])
 
     def affichage(self, fichier2, fichier3):
-
+        #self.spectrum_normalization()
         app = QApplication(sys.argv)
         win = QMainWindow()
         central_widget = QWidget()
@@ -189,7 +195,7 @@ class FieldFox():
 
         timer = QTimer()
         timer.timeout.connect(update)
-        timer.start(100)
+        timer.start(10)
 
         win.show()
         app.exec()
@@ -199,13 +205,16 @@ class FieldFox():
 
         self.Liste2 = np.zeros((1601, 4)) * np.nan
         self.Liste2[:, 1] = self.frequencies
-        self.Liste2[:, 2] = self.spectrum_normalisation
-        self.Liste2[:, 3] = self.amplitude_normalisation
+        self.Liste2[:, 2] = self.get_data_normalisation_spectrum
+        self.Liste2[:, 3] = self.get_data_normalisation_amplitude
 
         df1 = pd.DataFrame(self.Liste1)
         df1.to_csv(fichier2)
+        df1.to_csv('fichier2.csv', index=False)
         df2 = pd.DataFrame(self.Liste2, columns=['', 'Frequence', 'Phase normalise', 'Amplitude normalise'])
         df2.to_csv(fichier3)
+        #df2.to_csv('fichier3.csv', index=False)
+
 
     def start_poller(self, Frequence, fichier, fichier2, fichier3):
         self.thread = threading.Thread(target=self.poll_single_value, args=[Frequence, fichier])
@@ -230,6 +239,7 @@ class MyApp(QMainWindow):
             self.fichier = None
             self.fichier2 = None
             self.fichier3 = None
+            #self.myff = FieldFox()
         
     
     def initUI(self):
@@ -342,8 +352,10 @@ class MyApp(QMainWindow):
             bandwidth = float(bandwidth)
             averages = int(averages)
         except ValueError:
-            QMessageBox.warning(self, "Invalid Input", "Please enter valid numeric values.")
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid numeric values (bandwitdh, span, center frequency, averages ).")
             return
+
+        #self.myff.averages = averages
 
         myff.initialize(center_freq, span, bandwidth, averages, coefficient)
 
@@ -366,12 +378,14 @@ class MyApp(QMainWindow):
         fichier2 = self.input_fichier2.text()
         fichier3 = self.input_fichier3.text()
 
+
         try:
             Frequence = float(Frequence)
         except ValueError:
             self.show_warning("Invalid Input", "Please enter a valid numeric value for Target Frequency.")
             return
-
+        
+        #self.myff.start_poller(Frequence, fichier, fichier2, fichier3)      
         myff.start_poller(Frequence, fichier, fichier2, fichier3)
 
 
@@ -385,4 +399,3 @@ def main():
 if __name__ == "__main__":
     myff = FieldFox()
     main()
-
