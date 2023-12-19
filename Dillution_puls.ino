@@ -20,7 +20,7 @@ void setup() {
   //delay(2000); 
   inputString.reserve(200); 
 
-  pinMode(9, OUTPUT);
+  pinMode(8, OUTPUT);
   pinMode(11, OUTPUT);
   pinMode(12, OUTPUT);
 
@@ -82,12 +82,12 @@ void setup() {
 void loop() {
     starttime = millis();
     endtime = starttime;
-    while((endtime - starttime) <= (t_cycle*3000*0.997)) //pour les COVs
+    while((endtime - starttime) <= (t_cycle*18000*0.997)) //pour les COVs
     {
     starttime1 = millis();
     endtime1 = starttime1;
     while((endtime1 - starttime1) <= t_prime*1000){
-      digitalWrite(9, LOW);
+      digitalWrite(8, HIGH);
       digitalWrite(11, HIGH);
       digitalWrite(12, HIGH);
       endtime1 = millis();
@@ -98,7 +98,7 @@ void loop() {
     
     while ((endtime2 - starttime2) <= t_air*1000){
       digitalWrite(11, LOW);
-      digitalWrite(9, HIGH);
+      digitalWrite(8, HIGH);
       digitalWrite(12, LOW);
       endtime2 = millis();
     }
@@ -108,10 +108,10 @@ void loop() {
   }
   starttime = millis();
   endtime = starttime;
-  while((endtime - starttime) <= (t_cycle*3000*0.997))   //pour l'azote
+  while((endtime - starttime) <= (t_cycle*18000*0.997))   //pour l'azote
   {
     digitalWrite(11, LOW);                          
-    digitalWrite(9, LOW); 
+    digitalWrite(8, LOW); 
     digitalWrite(12, LOW);    
     endtime = millis();
     delay(250);
