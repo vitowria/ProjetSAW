@@ -2,7 +2,7 @@
 
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QTableWidget
 )
 from PyQt6.QtGui import QFont
 import time
@@ -27,7 +27,7 @@ class MyApp(QMainWindow):
         super().__init__()
         
         self.setWindowTitle("Find a title")
-        self.setGeometry(200, 200, 1200, 800)
+        self.setGeometry(200, 200, 1200, 1000)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -206,7 +206,7 @@ class MyApp(QMainWindow):
 
         layout.addLayout(right_layout)
 
-        central_widget.setLayout(layout)
+        
 
         # Variables to store the entry values for the controlers
         self.config_eletrov1_value = None
@@ -224,6 +224,42 @@ class MyApp(QMainWindow):
         self.AR_entry7 = None
         self.AR_entry8 = None
         self.AR_entry9 = None
+
+        alarm_layout = QVBoxLayout()
+        layout.addLayout(alarm_layout)
+
+        label_alarm1 = QLabel("Banana")
+        alarm_layout.addWidget(label_alarm1)
+        label_alarm1.setFont(fonte_grande)
+
+        self.table_widget1 = QTableWidget(2, 2)
+        alarm_layout.addWidget(self.table_widget1)
+        
+        self.table_widget1.setColumnWidth(0, 70)
+        self.table_widget1.setColumnWidth(1, 70)
+        
+        self.table_widget1.setHorizontalHeaderLabels(["Amplitude", "Phase"])
+        self.table_widget1.setVerticalHeaderLabels(["Old","Young"])
+
+
+
+        label_alarm2 = QLabel("Apple")
+        alarm_layout.addWidget(label_alarm2)
+        label_alarm2.setFont(fonte_grande)
+
+        self.table_widget2 = QTableWidget(2, 2)
+        alarm_layout.addWidget(self.table_widget2)
+        
+        self.table_widget2.setColumnWidth(0, 70)
+        self.table_widget2.setColumnWidth(1, 70)
+        
+        self.table_widget2.setHorizontalHeaderLabels(["Amplitude", "Phase"])
+        self.table_widget2.setVerticalHeaderLabels(["Old","Young"])
+
+
+        central_widget.setLayout(layout)
+
+
 
        
     
