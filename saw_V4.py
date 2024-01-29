@@ -9,8 +9,8 @@ import time
 import os
 import pyqtgraph as pg
 import propar
-from analyseur_reseauV2 import (FieldFox)
-from analyseur_reseauV2 import MyApp as AffichageAR
+from analyseur_reseau import (FieldFox)
+from analyseur_reseau import MyApp as AffichageAR
 from arduino import ArduinoThread
 import serial
 import pandas as pd
@@ -32,18 +32,15 @@ class MyApp(QMainWindow):
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         
-
-    
         try:
-            #self.myff = AffichageAR
             self.fox = FieldFox()
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
             QMessageBox.critical(self, "Error", error_message)
             #error_message = QLabel("Erro: O dispositivo FieldFox não foi encontrado.", self)
             #error_label.move(100, 50)
+        
         layout = QHBoxLayout()
-
         # Put 3 rows -> left
         left_layout = QVBoxLayout()
 
@@ -128,8 +125,7 @@ class MyApp(QMainWindow):
         self.button2.setStyleSheet("background-color:  #33b2ff;")
         left_layout.addWidget(self.button2)
         self.button2.clicked.connect(self.plot_graphs)
-       
-
+    
 
         center_layout = QVBoxLayout()
         
@@ -206,8 +202,6 @@ class MyApp(QMainWindow):
 
         layout.addLayout(right_layout)
 
-        
-
         # Variables to store the entry values for the controlers
         self.config_eletrov1_value = None
         self.config_eletrov2_value = None
@@ -258,10 +252,6 @@ class MyApp(QMainWindow):
 
 
         central_widget.setLayout(layout)
-
-
-
-       
     
     def InitControlers(self):
         
@@ -294,7 +284,7 @@ class MyApp(QMainWindow):
 
         # calls the functions
         self.InitArduino()
-        #self.debit_pression()
+        self.debit_pression()
 
     def InitArduino(self):
         # Iniciar a thread do Arduino
@@ -373,8 +363,6 @@ class MyApp(QMainWindow):
         except ValueError:
             QMessageBox.warning(self, "Invalid Input", "Please enter valid numeric values (bandwitdh, span, center frequency, averages ).")
             return
-
-        #self.myff.averages = averages
 
         self.fox.initialize(center_freq, span, bandwidth, averages, coefficient)
     
