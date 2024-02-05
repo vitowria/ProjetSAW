@@ -1,5 +1,3 @@
-#mets le temps total, elever le concentration initial
-
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QTableWidget
@@ -11,12 +9,8 @@ import pyqtgraph as pg
 import propar
 from analyseur_reseau import (FieldFox)
 from analyseur_reseau import MyApp as AffichageAR
-from arduino import ArduinoThread
 import serial
 import pandas as pd
-
-#import pyserial
-#from PyQt6.QtCore import QCoreApplication
 
 def InitPropar():
         cmd2 = 'pip install bronkhorst-propar'
@@ -26,21 +20,19 @@ class MyApp(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.setWindowTitle("Find a title")
+        self.setWindowTitle("")
         self.setGeometry(200, 200, 1200, 1000)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
-        
+
         try:
             self.fox = FieldFox()
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
             QMessageBox.critical(self, "Error", error_message)
-            #error_message = QLabel("Erro: O dispositivo FieldFox não foi encontrado.", self)
-            #error_label.move(100, 50)
-        
         layout = QHBoxLayout()
+
         # Put 3 rows -> left
         left_layout = QVBoxLayout()
 
@@ -125,7 +117,8 @@ class MyApp(QMainWindow):
         self.button2.setStyleSheet("background-color:  #33b2ff;")
         left_layout.addWidget(self.button2)
         self.button2.clicked.connect(self.plot_graphs)
-    
+       
+
 
         center_layout = QVBoxLayout()
         
@@ -154,7 +147,6 @@ class MyApp(QMainWindow):
 
         label_debit1 = QLabel("Flux [ml/s]")
         center_layout.addWidget(label_debit1)
-
         self.input_controlador_debito = QLineEdit()
         center_layout.addWidget(self.input_controlador_debito)
 
@@ -167,11 +159,11 @@ class MyApp(QMainWindow):
 
         label_pressao1 = QLabel("Pression [bar]")
         center_layout.addWidget(label_pressao1)
-
         self.input_controlador_pressao = QLineEdit()
         center_layout.addWidget(self.input_controlador_pressao)
     
         center_layout.addWidget(label_0)
+
         # Buttons
         self.start_button = QPushButton("Start")
         self.start_button.setStyleSheet("background-color: green;")
@@ -187,20 +179,9 @@ class MyApp(QMainWindow):
         # Layout graphs -> right
         right_layout = QVBoxLayout()
         
-        #######(not yet in real time)
-        # Graph 1
-        self.plot_widget1 = pg.PlotWidget(title="Amplitude")
-        right_layout.addWidget(self.plot_widget1)
-        self.plot1 = self.plot_widget1.plot(pen=pg.mkPen('b', width=2))
-        self.plot_data1 = []
-
-        # Graph 2 
-        self.plot_widget2 = pg.PlotWidget(title="Phase")
-        right_layout.addWidget(self.plot_widget2)
-        self.plot2 = self.plot_widget2.plot(pen=pg.mkPen('r', width=2))
-        self.plot_data2 = []
-
         layout.addLayout(right_layout)
+
+        
 
         # Variables to store the entry values for the controlers
         self.config_eletrov1_value = None
@@ -252,10 +233,10 @@ class MyApp(QMainWindow):
 
 
         central_widget.setLayout(layout)
+
+       
     
     def InitControlers(self):
-        
-
         #variables to save the entry values for the controlers and arduino
 
         self.config_eletrov1_value = self.input_config_eletrov1.text()
@@ -275,31 +256,21 @@ class MyApp(QMainWindow):
         self.AR_entry9 = self.input_AR_entry9.text()
 
         
-        # Real number verification
-        #if not self.is_real_number(self.config_eletrov1_value) or not self.is_real_number(self.config_eletrov2_value) or \
-        #        not self.is_real_number(self.controlador_debito_value) or not self.is_real_number(self.controlador_pressao_value):
-        #    self.show_warning("Incorrect input", "Put real numbers")
-        #    return
-        # Verificação outra inventar
-
-        # calls the functions
         self.InitArduino()
         self.debit_pression()
 
     def InitArduino(self):
-        # Iniciar a thread do Arduino
+        # initialize the eletrovannes
         self.config_eletrov1_value = self.input_config_eletrov1.text()
         self.config_eletrov2_value = self.input_config_eletrov2.text()
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        self.arduino_thread = ArduinoThread('/dev/cu.usbmodem14201', self.input_config_eletrov1, self.input_config_eletrov2, self.input_controlador_debito, self.input_controlador_pressao, self)
-        self.arduino_thread.finished_signal.connect(self.arduino_finished) 
-        self.arduino_thread.start()
+        port = '/dev/tty.usbmodem1424401'
 
-    def arduino_finished(self, result):
-        # Manipular o resultado (exibição, etc.)
-        print('cabou')
+        ard = serial.Serial(port, 9600)
+        ard.write(f'{self.config_eletrov1_value};{self.config_eletrov2_value};'.encode())
+
 
 
     def debit_pression(self):
