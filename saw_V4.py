@@ -7,16 +7,58 @@ import time
 import os
 import pyqtgraph as pg
 import propar
-from analyseur_reseau import (FieldFox)
-from analyseur_reseau import MyApp as AffichageAR
+from analyseur_reseauV2 import (FieldFox)
+from analyseur_reseauV2 import MyApp as AffichageAR
 import serial
 import pandas as pd
+import serial.tools.list_ports
 
-def InitPropar():
-        cmd2 = 'pip install bronkhorst-propar'
-        os.system(cmd2)
+
+def list_serial_devices():
+    devices = []
+    for port in serial.tools.list_ports.comports():
+        devices.append({
+            'device': port.device,
+            'name': port.name,
+            'description': port.description,
+            'hwid': port.hwid,
+                # Uncomment if you need to match by VID:PID
+                # 'vid': port.vid,
+                # 'pid': port.pid,
+            })
+        return devices
+
+def find_com_port(expected_description):
+    for device in list_serial_devices():
+        if expected_description in device['description']:
+            return device['device']
+    return None        
 
 class MyApp(QMainWindow):
+
+    def create_label(self, text, font_size=10):
+        label = QLabel(text)
+        font = label.font()
+        font.setPointSize(font_size)
+        label.setFont(font)
+        return label
+
+    def create_button(self, text, on_click=None, background_color=None):
+        button = QPushButton(text)
+        if on_click:
+            button.clicked.connect(on_click)
+        if background_color:
+            button.setStyleSheet(f"background-color: {background_color};")
+        return button
+    
+    def create_line_edit(self, placeholder_text=''):
+        #create_label(placeholder_text)
+        line_edit = QLineEdit()
+        line_edit.setPlaceholderText(placeholder_text)
+        return line_edit
+    
+
+
     def __init__(self):
         super().__init__()
         
@@ -25,164 +67,121 @@ class MyApp(QMainWindow):
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
+        layout = QHBoxLayout()
 
         try:
             self.fox = FieldFox()
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
             QMessageBox.critical(self, "Error", error_message)
-        layout = QHBoxLayout()
 
-        # Put 3 rows -> left
+        # Example of refactored UI setup
         left_layout = QVBoxLayout()
 
-        #Defines font
-        fonte_grande = QFont()
-        fonte_grande.setPointSize(16)
-
-        #Configurations Analyseur de Reseau
-        label_ARconfiguracoes = QLabel("Network Analyzer's Configurations ")
+        # Using the helper function to create a label
+        label_ARconfiguracoes = self.create_label("Network Analyzer's Configurations", font_size=16)
         left_layout.addWidget(label_ARconfiguracoes)
-        label_ARconfiguracoes.setFont(fonte_grande)
-        layout.addLayout(left_layout)
 
-        label_ar9 = QLabel("\nS-parameter\n    [S11,S12,S21,S22] :")
-        left_layout.addWidget(label_ar9)
-        self.input_AR_entry9 = QLineEdit()
-        left_layout.addWidget(self.input_AR_entry9)
-
-        label_ar1 = QLabel("Center frequency [Hz] :")
-        left_layout.addWidget(label_ar1)
-        self.input_AR_entry1 = QLineEdit()
+        # Simplified QLineEdit creation
+        left_layout.addWidget(self.create_label('Enter center frequency'))
+        self.input_AR_entry1 = self.create_line_edit("")
         left_layout.addWidget(self.input_AR_entry1)
 
-        label_ar2 = QLabel("Span [Hz] :")
-        left_layout.addWidget(label_ar2)
-        self.input_AR_entry2 = QLineEdit()
+        left_layout.addWidget(self.create_label('\nS-parameter\n    [S11,S12,S21,S22] :'))
+        self.input_AR_entry9 = self.create_line_edit("")
+        left_layout.addWidget(self.input_AR_entry9)
+
+        left_layout.addWidget(self.create_label('Span [Hz] :'))
+        self.input_AR_entry2 = self.create_line_edit("")
         left_layout.addWidget(self.input_AR_entry2)
 
-        label_ar3 = QLabel("Bandwidth [Hz]\n      [10,100,1000,10000,100000] :\n")
-        left_layout.addWidget(label_ar3)
-        self.input_AR_entry3 = QLineEdit()
+        left_layout.addWidget(self.create_label('Bandwidth [Hz]\n      [10,100,1000,10000,100000] :\n'))
+        self.input_AR_entry3 = self.create_line_edit("")
         left_layout.addWidget(self.input_AR_entry3)
 
-        label_ar4 = QLabel("Average measurement :\n")
-        left_layout.addWidget(label_ar4)
-        self.input_AR_entry4 = QLineEdit()
+        left_layout.addWidget(self.create_label('Average measurement :\n'))
+        self.input_AR_entry4 = self.create_line_edit("")
         left_layout.addWidget(self.input_AR_entry4)
-        
-        #Button of AR
-        self.button1 = QPushButton("Initialization of the network analyzer")
-        self.button1.setStyleSheet("background-color:  #33b2ff;")
+
+        # Simplified QPushButton creation
+        self.button1 = self.create_button("Initialization of the network analyzer", self.initialize, "#33b2ff")
         left_layout.addWidget(self.button1)
-        self.button1.clicked.connect(self.initialize)
 
-        label_ar5 = QLabel("Target frequency [Hz] :\n")
-        left_layout.addWidget(label_ar5)
-        self.input_AR_entry5 = QLineEdit()
+        left_layout.addWidget(self.create_label('Target frequency [Hz] :\n'))
+        self.input_AR_entry5 = self.create_line_edit("Target frequency [Hz] :\n")
         left_layout.addWidget(self.input_AR_entry5)
-        
-        #Button of AR
-        button_spectrum_normalization = QPushButton("Spectrum normalization")
-        button_spectrum_normalization.setStyleSheet("background-color: #33b2ff")
-        left_layout.addWidget(button_spectrum_normalization)
-        button_spectrum_normalization.clicked.connect(self.spectrum_normalization)
-        
-        #Button of AR
-        self.button4 = QPushButton("Amplitude normalization")
-        self.button4.setStyleSheet("background-color:  #33b2ff;")
-        left_layout.addWidget(self.button4)
-        self.button4.clicked.connect(self.amplitude_normalization)
 
-        label_ar6 = QLabel("File name for the complete graph :")
-        left_layout.addWidget(label_ar6)
-        self.input_AR_entry6 = QLineEdit()
+        # Simplified QPushButton creation
+        self.button2 = self.create_button("Spectrum normalization", self.spectrum_normalization, "#33b2ff")
+        left_layout.addWidget(self.button2)
+
+        # Simplified QPushButton creation
+        self.button3 = self.create_button("Amplitude normalization", self.amplitude_normalization, "#33b2ff")
+        left_layout.addWidget(self.button3)
+
+        self.input_AR_entry6 = self.create_line_edit("File name for the complete graph :")
         left_layout.addWidget(self.input_AR_entry6)
 
-        label_ar7 = QLabel("File name for the target frequency :")
-        left_layout.addWidget(label_ar7)
-        self.input_AR_entry7 = QLineEdit()
+        self.input_AR_entry7 = self.create_line_edit("File name for the target frequency :")
         left_layout.addWidget(self.input_AR_entry7)
 
-        label_ar8 = QLabel("File name for the normalization graph :")
-        left_layout.addWidget(label_ar8)
-        self.input_AR_entry8 = QLineEdit()
+        self.input_AR_entry8 = self.create_line_edit("File name for the normalization graph :")
         left_layout.addWidget(self.input_AR_entry8)
-        
+
+        # Simplified QPushButton creation
+        self.button4 = self.create_button("Plot the graphs", self.plot_graphs, "#33b2ff")
+        left_layout.addWidget(self.button4)
+
         label_0 = QLabel(" ")
         left_layout.addWidget(label_0)
-        
-        #Button of AR       
-        self.button2 = QPushButton("Plot the graph")
-        self.button2.setStyleSheet("background-color:  #33b2ff;")
-        left_layout.addWidget(self.button2)
-        self.button2.clicked.connect(self.plot_graphs)
-       
-
+        layout.addLayout(left_layout)
 
         center_layout = QVBoxLayout()
         
+
         # Configurations electrovannes
-        label_configuracoes = QLabel("Electrovanne's Configurations")
-        center_layout.addWidget(label_configuracoes)
 
-        label_configuracoes.setFont(fonte_grande)
-
-        label_electrovannes1 = QLabel("Final Concentration [mol/L]")
-        center_layout.addWidget(label_electrovannes1)
-        self.input_config_eletrov1 = QLineEdit()
+        label_EVconfigurations = self.create_label("Electrovanne's Configurations", font_size=16)
+        center_layout.addWidget(label_EVconfigurations)
+  
+        center_layout.addWidget(self.create_label("Final Concentration [mol/L]"))
+        self.input_config_eletrov1 = self.create_line_edit("")
         center_layout.addWidget(self.input_config_eletrov1)
-        
-        label_electrovannes2 = QLabel("Initial Concentration [mol/L]")
-        center_layout.addWidget(label_electrovannes2)
-        self.input_config_eletrov2 = QLineEdit()
+
+        center_layout.addWidget(self.create_label("Initial Concentration [mol/L]"))
+        self.input_config_eletrov2 = self.create_line_edit("")
         center_layout.addWidget(self.input_config_eletrov2)
+        
 
         # Débit controler
-        label_debito = QLabel("Flow controler")
-        center_layout.addWidget(label_debito)
-        fonte_grande = QFont()
-        fonte_grande.setPointSize(16)
-        label_debito.setFont(fonte_grande)
+        label_debit = self.create_label("Flow controler", font_size=16)
+        center_layout.addWidget(label_debit)
 
-        label_debit1 = QLabel("Flux [ml/s]")
-        center_layout.addWidget(label_debit1)
-        self.input_controlador_debito = QLineEdit()
+        center_layout.addWidget(self.create_label("Flux [ml/s]"))
+        self.input_controlador_debito = self.create_line_edit("")
         center_layout.addWidget(self.input_controlador_debito)
-
+        
         # Pression controler
-        label_pressao = QLabel("Pression Controler")
-        center_layout.addWidget(label_pressao)
-        fonte_grande = QFont()
-        fonte_grande.setPointSize(16)
-        label_pressao.setFont(fonte_grande)
+        label_pression = self.create_label("Pression Controler", font_size=16)
+        center_layout.addWidget(label_pression)
 
-        label_pressao1 = QLabel("Pression [bar]")
-        center_layout.addWidget(label_pressao1)
-        self.input_controlador_pressao = QLineEdit()
+        center_layout.addWidget(self.create_label("Pression [bar]"))
+        self.input_controlador_pressao = self.create_line_edit("")
         center_layout.addWidget(self.input_controlador_pressao)
     
         center_layout.addWidget(label_0)
 
-        # Buttons
-        self.start_button = QPushButton("Start")
-        self.start_button.setStyleSheet("background-color: green;")
-        center_layout.addWidget(self.start_button)
-        self.start_button.clicked.connect(self.InitControlers)
 
-        self.stop_button = QPushButton("Stop")
-        self.stop_button.setStyleSheet("background-color: red;")
-        center_layout.addWidget(self.stop_button)
+        # Buttons
+        self.button5 = self.create_button("Start", self.InitControlers, "#background-color: green")
+        center_layout.addWidget(self.button5)
+
+        self.button6 = self.create_button("Stop", self.stop_button, "#background-color: red")
+        center_layout.addWidget(self.button6)
 
         layout.addLayout(center_layout)
 
-        # Layout graphs -> right
-        right_layout = QVBoxLayout()
         
-        layout.addLayout(right_layout)
-
-        
-
         # Variables to store the entry values for the controlers
         self.config_eletrov1_value = None
         self.config_eletrov2_value = None
@@ -205,7 +204,6 @@ class MyApp(QMainWindow):
 
         label_alarm1 = QLabel("Banana")
         alarm_layout.addWidget(label_alarm1)
-        label_alarm1.setFont(fonte_grande)
 
         self.table_widget1 = QTableWidget(2, 2)
         alarm_layout.addWidget(self.table_widget1)
@@ -220,7 +218,6 @@ class MyApp(QMainWindow):
 
         label_alarm2 = QLabel("Apple")
         alarm_layout.addWidget(label_alarm2)
-        label_alarm2.setFont(fonte_grande)
 
         self.table_widget2 = QTableWidget(2, 2)
         alarm_layout.addWidget(self.table_widget2)
@@ -255,9 +252,9 @@ class MyApp(QMainWindow):
         self.AR_entry8 = self.input_AR_entry8.text()
         self.AR_entry9 = self.input_AR_entry9.text()
 
-        
-        self.InitArduino()
         self.debit_pression()
+        self.InitArduino()
+  
 
     def InitArduino(self):
         # initialize the eletrovannes
@@ -274,7 +271,6 @@ class MyApp(QMainWindow):
 
 
     def debit_pression(self):
-        InitPropar()
         # Prends le valeur donné par l'utilisateurs sur l'interface 
         v_debit = float(self.controlador_debito_value) 
         v_pression = float(self.controlador_pressao_value) 
