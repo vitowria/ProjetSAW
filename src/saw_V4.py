@@ -7,8 +7,8 @@ import time
 import os
 import pyqtgraph as pg
 import propar
-from analyseur_reseauV2 import (FieldFox)
-from analyseur_reseauV2 import MyApp as AffichageAR
+from analyseur_reseau import (FieldFox)
+from analyseur_reseau import MyApp as AffichageAR
 import serial
 import pandas as pd
 import serial.tools.list_ports

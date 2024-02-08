@@ -15,11 +15,12 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
+from dotenv import dotenv_values
 
 class FieldFox():
-#MY59221135
-#MY59221424
-    def __init__(self, visa_id="USB0::0x2A8D::0x5C18::MY59221424::0::INSTR"):
+    def __init__(self):
+        config = dotenv_values('.env')
+        visa_id=f"USB0::0x2A8D::0x5C18::{config['SERIAL_NETWORK_ANALYSER']}::0::INSTR"
         print("Criando instância do FieldFox")
         rm = pyvisa.ResourceManager()
         self.inst = rm.open_resource(visa_id, read_termination='\n')
