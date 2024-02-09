@@ -19,7 +19,7 @@ from dotenv import dotenv_values
 
 class FieldFox():
     def __init__(self):
-        config = dotenv_values('.env')
+        config = dotenv_values('src/.env')
         visa_id=f"USB0::0x2A8D::0x5C18::{config['SERIAL_NETWORK_ANALYSER']}::0::INSTR"
         print("Criando instância do FieldFox")
         rm = pyvisa.ResourceManager()

@@ -108,7 +108,7 @@ class MyApp(QMainWindow):
         left_layout.addWidget(self.button1)
 
         left_layout.addWidget(self.create_label('Target frequency [Hz] :\n'))
-        self.input_AR_entry5 = self.create_line_edit("Target frequency [Hz] :\n")
+        self.input_AR_entry5 = self.create_line_edit("")
         left_layout.addWidget(self.input_AR_entry5)
 
         # Simplified QPushButton creation
@@ -176,8 +176,8 @@ class MyApp(QMainWindow):
         self.button5 = self.create_button("Start", self.InitControlers, "#background-color: green")
         center_layout.addWidget(self.button5)
 
-        self.button6 = self.create_button("Stop", self.stop_button, "#background-color: red")
-        center_layout.addWidget(self.button6)
+        #self.button6 = self.create_button("Stop", self.stop_button, "#background-color: red")
+        #center_layout.addWidget(self.button6)
 
         layout.addLayout(center_layout)
 
@@ -216,17 +216,17 @@ class MyApp(QMainWindow):
 
 
 
-        label_alarm2 = QLabel("Apple")
-        alarm_layout.addWidget(label_alarm2)
+        #label_alarm2 = QLabel("Apple")
+        #alarm_layout.addWidget(label_alarm2)
 
-        self.table_widget2 = QTableWidget(2, 2)
-        alarm_layout.addWidget(self.table_widget2)
+        #self.table_widget2 = QTableWidget(2, 2)
+        #alarm_layout.addWidget(self.table_widget2)
         
-        self.table_widget2.setColumnWidth(0, 70)
-        self.table_widget2.setColumnWidth(1, 70)
+        #self.table_widget2.setColumnWidth(0, 70)
+        #self.table_widget2.setColumnWidth(1, 70)
         
-        self.table_widget2.setHorizontalHeaderLabels(["Amplitude", "Phase"])
-        self.table_widget2.setVerticalHeaderLabels(["Old","Young"])
+        #self.table_widget2.setHorizontalHeaderLabels(["Amplitude", "Phase"])
+        #self.table_widget2.setVerticalHeaderLabels(["Old","Young"])
 
 
         central_widget.setLayout(layout)
@@ -263,7 +263,7 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        port = '/dev/tty.usbmodem1424401'
+        port = find_com_port('IOUSBHostDevice')
 
         ard = serial.Serial(port, 9600)
         ard.write(f'{self.config_eletrov1_value};{self.config_eletrov2_value};'.encode())
@@ -273,22 +273,22 @@ class MyApp(QMainWindow):
     def debit_pression(self):
         # Prends le valeur donné par l'utilisateurs sur l'interface 
         v_debit = float(self.controlador_debito_value) 
-        v_pression = float(self.controlador_pressao_value) 
+        #v_pression = float(self.controlador_pressao_value) 
 
         # Connexion au contrôleur de débit (par défaut channel=1), ajuster le port COM
-        instrument_debit = propar.instrument('COM4', channel=1) #Changer les COM4 et COM5 en function du port USB
-        instrument_pression = propar.instrument('COM5', channel=1)
+        instrument_debit = propar.instrument(find_com_port('USB-Serial Controller D'), channel=1) #Changer les COM4 et COM5 en function du port USB
+        #instrument_pression = propar.instrument('COM5', channel=1)
         
         # Mettre le paramètre 12 à 0 pour contrôler par le bus RS232
         instrument_debit.writeParameter(12, 0)
-        instrument_pression.writeParameter(12, 0)
+        #instrument_pression.writeParameter(12, 0)
         
         # Moduler la valeur du débit entre 0 et 32000 (0 - 100%)
-        instrument_pression.writeParameter(9, int(v_pression))
+        #instrument_pression.writeParameter(9, int(v_pression))
         instrument_debit.writeParameter(9, int(v_debit))
         
         # Verification de la valeur envoyée précédemment
-        print(instrument_pression.readParameter(9))
+        #print(instrument_pression.readParameter(9))
         print(instrument_debit.readParameter(9))
     
 
