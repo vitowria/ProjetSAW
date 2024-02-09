@@ -21,7 +21,7 @@ class FieldFox():
     def __init__(self):
         config = dotenv_values('src/.env')
         visa_id=f"USB0::0x2A8D::0x5C18::{config['SERIAL_NETWORK_ANALYSER']}::0::INSTR"
-        print("Criando instância do FieldFox")
+        print("Creating FieldFox's instancy ")
         rm = pyvisa.ResourceManager()
         self.inst = rm.open_resource(visa_id, read_termination='\n')
         self.inst.timeout = 1000000
@@ -99,7 +99,7 @@ class FieldFox():
         data_normalisation_spectrum = self.inst.query("CALC:DATA:FDATa?")
         array_normalisation_spectrum = np.array(list(map(float, data_normalisation_spectrum.split(','))))
         self.data_normalisation_spectrum = array_normalisation_spectrum
-        print("Data de Normalização do espectro feita")
+        print("Data of normalisation of spectrum done")
         return array_normalisation_spectrum
 
     def get_data_normalisation_amplitude(self):
@@ -110,7 +110,7 @@ class FieldFox():
         data_normalisation_amplitude = self.inst.query("CALC:DATA:FDATa?")
         array_normalisation_amplitude = np.array(list(map(float, data_normalisation_amplitude.split(','))))
         self.data_normalisation_amplitude = array_normalisation_amplitude
-        print("Data de Normalização amplitude feita")
+        print("Data of normalisation amplitude done")
         return array_normalisation_amplitude
 
     def get_data(self):
@@ -132,7 +132,7 @@ class FieldFox():
         return array2
 
     def find_frequence(self, Frequence):
-        counter = 0  # Adicione essa linha para garantir que o counter seja inicializado
+        counter = 0  
         while counter < len(self.frequencies) and float(self.frequencies[counter]) < float(Frequence):
             counter = counter + 1
         return counter

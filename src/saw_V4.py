@@ -3,14 +3,11 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QTableWidget
 )
 from PyQt6.QtGui import QFont
-import time
-import os
 import pyqtgraph as pg
 import propar
 from analyseur_reseau import (FieldFox)
 from analyseur_reseau import MyApp as AffichageAR
 import serial
-import pandas as pd
 import serial.tools.list_ports
 
 
@@ -52,13 +49,10 @@ class MyApp(QMainWindow):
         return button
     
     def create_line_edit(self, placeholder_text=''):
-        #create_label(placeholder_text)
         line_edit = QLineEdit()
         line_edit.setPlaceholderText(placeholder_text)
         return line_edit
     
-
-
     def __init__(self):
         super().__init__()
         
@@ -77,38 +71,40 @@ class MyApp(QMainWindow):
 
         # Example of refactored UI setup
         left_layout = QVBoxLayout()
-
+        label_0 = QLabel("\n")
         # Using the helper function to create a label
         label_ARconfiguracoes = self.create_label("Network Analyzer's Configurations", font_size=16)
         left_layout.addWidget(label_ARconfiguracoes)
 
         # Simplified QLineEdit creation
         left_layout.addWidget(self.create_label('Enter center frequency'))
-        self.input_AR_entry1 = self.create_line_edit("")
+        self.input_AR_entry1 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry1)
 
         left_layout.addWidget(self.create_label('\nS-parameter\n    [S11,S12,S21,S22] :'))
-        self.input_AR_entry9 = self.create_line_edit("")
+        self.input_AR_entry9 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry9)
 
         left_layout.addWidget(self.create_label('Span [Hz] :'))
-        self.input_AR_entry2 = self.create_line_edit("")
+        self.input_AR_entry2 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry2)
 
         left_layout.addWidget(self.create_label('Bandwidth [Hz]\n      [10,100,1000,10000,100000] :\n'))
-        self.input_AR_entry3 = self.create_line_edit("")
+        self.input_AR_entry3 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry3)
 
         left_layout.addWidget(self.create_label('Average measurement :\n'))
-        self.input_AR_entry4 = self.create_line_edit("")
+        self.input_AR_entry4 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry4)
-
+        
         # Simplified QPushButton creation
         self.button1 = self.create_button("Initialization of the network analyzer", self.initialize, "#33b2ff")
         left_layout.addWidget(self.button1)
+        
+        left_layout.addWidget(label_0)
 
         left_layout.addWidget(self.create_label('Target frequency [Hz] :\n'))
-        self.input_AR_entry5 = self.create_line_edit("")
+        self.input_AR_entry5 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry5)
 
         # Simplified QPushButton creation
@@ -119,20 +115,26 @@ class MyApp(QMainWindow):
         self.button3 = self.create_button("Amplitude normalization", self.amplitude_normalization, "#33b2ff")
         left_layout.addWidget(self.button3)
 
-        self.input_AR_entry6 = self.create_line_edit("File name for the complete graph :")
+        left_layout.addWidget(label_0)
+
+
+        self.input_AR_entry6 = self.create_line_edit()
+        left_layout.addWidget(self.create_label("File name for the complete graph :"))
         left_layout.addWidget(self.input_AR_entry6)
 
-        self.input_AR_entry7 = self.create_line_edit("File name for the target frequency :")
+        self.input_AR_entry7 = self.create_line_edit()
+        left_layout.addWidget(self.create_label("File name for the target frequency : "))
         left_layout.addWidget(self.input_AR_entry7)
 
-        self.input_AR_entry8 = self.create_line_edit("File name for the normalization graph :")
+        self.input_AR_entry8 = self.create_line_edit()
+        left_layout.addWidget(self.create_label("File name for the normalization graph : "))
         left_layout.addWidget(self.input_AR_entry8)
 
         # Simplified QPushButton creation
         self.button4 = self.create_button("Plot the graphs", self.plot_graphs, "#33b2ff")
         left_layout.addWidget(self.button4)
 
-        label_0 = QLabel(" ")
+        
         left_layout.addWidget(label_0)
         layout.addLayout(left_layout)
 
@@ -145,11 +147,11 @@ class MyApp(QMainWindow):
         center_layout.addWidget(label_EVconfigurations)
   
         center_layout.addWidget(self.create_label("Final Concentration [mol/L]"))
-        self.input_config_eletrov1 = self.create_line_edit("")
+        self.input_config_eletrov1 = self.create_line_edit()
         center_layout.addWidget(self.input_config_eletrov1)
 
         center_layout.addWidget(self.create_label("Initial Concentration [mol/L]"))
-        self.input_config_eletrov2 = self.create_line_edit("")
+        self.input_config_eletrov2 = self.create_line_edit()
         center_layout.addWidget(self.input_config_eletrov2)
         
 
@@ -158,7 +160,7 @@ class MyApp(QMainWindow):
         center_layout.addWidget(label_debit)
 
         center_layout.addWidget(self.create_label("Flux [ml/s]"))
-        self.input_controlador_debito = self.create_line_edit("")
+        self.input_controlador_debito = self.create_line_edit()
         center_layout.addWidget(self.input_controlador_debito)
         
         # Pression controler
@@ -166,20 +168,20 @@ class MyApp(QMainWindow):
         center_layout.addWidget(label_pression)
 
         center_layout.addWidget(self.create_label("Pression [bar]"))
-        self.input_controlador_pressao = self.create_line_edit("")
+        self.input_controlador_pressao = self.create_line_edit()
         center_layout.addWidget(self.input_controlador_pressao)
     
-        center_layout.addWidget(label_0)
+        #center_layout.addWidget(label_0)
 
 
         # Buttons
-        self.button5 = self.create_button("Start", self.InitControlers, "#background-color: green")
+        self.button5 = self.create_button("Start", self.InitControlers, "#008000")
         center_layout.addWidget(self.button5)
 
-        #self.button6 = self.create_button("Stop", self.stop_button, "#background-color: red")
-        #center_layout.addWidget(self.button6)
-
         layout.addLayout(center_layout)
+
+        center_layout.addWidget(label_0)
+
 
         
         # Variables to store the entry values for the controlers
@@ -205,29 +207,14 @@ class MyApp(QMainWindow):
         label_alarm1 = QLabel("Banana")
         alarm_layout.addWidget(label_alarm1)
 
-        self.table_widget1 = QTableWidget(2, 2)
+        self.table_widget1 = QTableWidget(5, 2)
         alarm_layout.addWidget(self.table_widget1)
         
         self.table_widget1.setColumnWidth(0, 70)
         self.table_widget1.setColumnWidth(1, 70)
         
         self.table_widget1.setHorizontalHeaderLabels(["Amplitude", "Phase"])
-        self.table_widget1.setVerticalHeaderLabels(["Old","Young"])
-
-
-
-        #label_alarm2 = QLabel("Apple")
-        #alarm_layout.addWidget(label_alarm2)
-
-        #self.table_widget2 = QTableWidget(2, 2)
-        #alarm_layout.addWidget(self.table_widget2)
-        
-        #self.table_widget2.setColumnWidth(0, 70)
-        #self.table_widget2.setColumnWidth(1, 70)
-        
-        #self.table_widget2.setHorizontalHeaderLabels(["Amplitude", "Phase"])
-        #self.table_widget2.setVerticalHeaderLabels(["Old","Young"])
-
+        self.table_widget1.setVerticalHeaderLabels(["Very riped","Riped",'Normal',"Young", 'Very young'])
 
         central_widget.setLayout(layout)
 
@@ -263,9 +250,9 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
-        port = find_com_port('IOUSBHostDevice')
+        port_arduino = find_com_port('IOUSBHostDevice')
 
-        ard = serial.Serial(port, 9600)
+        ard = serial.Serial(port_arduino, 9600)
         ard.write(f'{self.config_eletrov1_value};{self.config_eletrov2_value};'.encode())
 
 
@@ -276,7 +263,7 @@ class MyApp(QMainWindow):
         #v_pression = float(self.controlador_pressao_value) 
 
         # Connexion au contrôleur de débit (par défaut channel=1), ajuster le port COM
-        instrument_debit = propar.instrument(find_com_port('USB-Serial Controller D'), channel=1) #Changer les COM4 et COM5 en function du port USB
+        instrument_debit = propar.instrument(find_com_port('USB-Serial Controller D'), channel=1) 
         #instrument_pression = propar.instrument('COM5', channel=1)
         
         # Mettre le paramètre 12 à 0 pour contrôler par le bus RS232
