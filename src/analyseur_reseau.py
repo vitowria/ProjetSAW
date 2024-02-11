@@ -16,6 +16,43 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 from dotenv import dotenv_values
+from PyQt6.QtCore import QObject, pyqtSignal
+
+
+
+class DataMonitor(QObject):
+    warning_signal = pyqtSignal(str)
+    def __init__(self):
+        super().__init__()
+        self.phase_variation_limit = 40  # Limite de variação de fase
+        self.amplitude_variation_limit = 0.007  # Limite de variação de amplitude
+        self.counter = 0  # Contador de ocorrências consecutivas
+        self.initial_phase_value = None  # Valor inicial de fase
+        self.initial_amplitude_value = None  # Valor inicial de amplitude
+
+    def update_and_check(self, current_phase, current_amplitude):
+        # Inicializa os valores iniciais se ainda não definidos
+        if self.initial_phase_value is None or self.initial_amplitude_value is None:
+            self.initial_phase_value = current_phase
+            self.initial_amplitude_value = current_amplitude
+            return
+        
+        # Calcula variações em relação aos valores iniciais
+        phase_variation = abs(current_phase - self.initial_phase_value)
+        amplitude_variation = abs(current_amplitude - self.initial_amplitude_value)
+
+        # Verifica se as variações excedem os limites
+        if phase_variation > self.phase_variation_limit or amplitude_variation > self.amplitude_variation_limit:
+            self.counter += 1
+            if self.counter >= 4:
+                self.emit_warning()  # Emite o aviso
+                # Não resete o contador aqui se você quiser que o aviso seja emitido
+                # para cada ocorrência após as 4 iniciais
+        else:
+            self.counter = 0  # Reset o contador se as variações estiverem dentro dos limites
+
+    def emit_warning(self):
+        self.warning_signal.emit("Warning: Data variation exceeded limits 4 times in a row.")
 
 class FieldFox():
     def __init__(self):
@@ -30,7 +67,7 @@ class FieldFox():
         self.amplitude = None
         self.averages = 1
         self.frequencies = np.linspace(self.start_frequency, self.stop_frequency, self.sweep_point_number)
-
+        self.data_monitor = DataMonitor()
         self.Frequence = 0
         self.counter = 0
 
@@ -155,6 +192,12 @@ class FieldFox():
             temps = t - self.start_time
             data = self.get_data()
             data2 = self.get_data2()
+
+            current_phase = data[-1]  # Acessa o último elemento da lista/array de fase
+            current_amplitude = data2[-1]  # Acessa o último elemento da lista/array de amplitude
+
+            self.data_monitor.update_and_check(current_phase, current_amplitude)
+
             self.spectrum_normalisation = data / self.data_normalisation_spectrum
             self.amplitude_normalisation = data2 / self.data_normalisation_amplitude
             self.spectrum = data

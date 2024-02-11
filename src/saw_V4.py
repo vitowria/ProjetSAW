@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont
 import pyqtgraph as pg
 import propar
-from analyseur_reseau import (FieldFox)
-from analyseur_reseau import MyApp as AffichageAR
+from analyseur_reseau import FieldFox
+from analyseur_reseau import DataMonitor
 import serial
 import serial.tools.list_ports
 
@@ -53,9 +53,12 @@ class MyApp(QMainWindow):
         line_edit.setPlaceholderText(placeholder_text)
         return line_edit
     
-    def __init__(self):
+    
+    def __init__(self, data_monitor=None):
         super().__init__()
-        
+        if data_monitor is not None:
+            data_monitor.warning_signal.connect(self.show_data_monitor_warning)
+
         self.setWindowTitle("")
         self.setGeometry(200, 200, 1200, 1000)
 
@@ -68,7 +71,7 @@ class MyApp(QMainWindow):
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
             QMessageBox.critical(self, "Error", error_message)
-
+        
         # Example of refactored UI setup
         left_layout = QVBoxLayout()
         label_0 = QLabel("\n")
@@ -201,25 +204,27 @@ class MyApp(QMainWindow):
         self.AR_entry8 = None
         self.AR_entry9 = None
 
-        alarm_layout = QVBoxLayout()
-        layout.addLayout(alarm_layout)
+        #alarm_layout = QVBoxLayout()
+        #layout.addLayout(alarm_layout)
 
-        label_alarm1 = QLabel("Banana")
-        alarm_layout.addWidget(label_alarm1)
+        #label_alarm1 = QLabel("Banana")
+        #alarm_layout.addWidget(label_alarm1)
 
-        self.table_widget1 = QTableWidget(5, 2)
-        alarm_layout.addWidget(self.table_widget1)
+        #self.table_widget1 = QTableWidget(5, 2)
+        #alarm_layout.addWidget(self.table_widget1)
         
-        self.table_widget1.setColumnWidth(0, 70)
-        self.table_widget1.setColumnWidth(1, 70)
+        #self.table_widget1.setColumnWidth(0, 70)
+        #self.table_widget1.setColumnWidth(1, 70)
         
-        self.table_widget1.setHorizontalHeaderLabels(["Amplitude", "Phase"])
-        self.table_widget1.setVerticalHeaderLabels(["Very riped","Riped",'Normal',"Young", 'Very young'])
+        #self.table_widget1.setHorizontalHeaderLabels(["Amplitude", "Phase"])
+        #self.table_widget1.setVerticalHeaderLabels(["Very riped","Riped",'Normal',"Young", 'Very young'])
 
         central_widget.setLayout(layout)
 
-       
-    
+    def show_data_monitor_warning(self, message):
+        QMessageBox.warning(self, "Data Monitor Warning", message)
+
+
     def InitControlers(self):
         #variables to save the entry values for the controlers and arduino
 
@@ -365,9 +370,11 @@ class MyApp(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = MyApp()
+    data_monitor = DataMonitor()
+    window = MyApp(data_monitor)
     window.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()
