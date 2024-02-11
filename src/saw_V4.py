@@ -9,6 +9,8 @@ from analyseur_reseau import FieldFox
 from analyseur_reseau import DataMonitor
 import serial
 import serial.tools.list_ports
+from dotenv import dotenv_values
+
 
 def list_serial_devices():
     devices = []
@@ -247,7 +249,15 @@ class MyApp(QMainWindow):
         self.controlador_debito_value = self.input_controlador_debito.text()
         self.controlador_pressao_value = self.input_controlador_pressao.text()
 
+
         port_arduino = find_com_port('IOUSBHostDevice')
+        if port_arduino == None: 
+            config = dotenv_values('src/.env')
+            port_arduino = f"{config['PORT_ARDUINO']}"
+        else:
+            port_arduino = find_com_port('IOUSBHostDevice')
+
+
 
         ard = serial.Serial(port_arduino, 9600)
         ard.write(f'{self.config_eletrov1_value};{self.config_eletrov2_value};'.encode())
@@ -256,24 +266,36 @@ class MyApp(QMainWindow):
 
     def debit_pression(self):
         # Prends le valeur donné par l'utilisateurs sur l'interface 
+        
         v_debit = float(self.controlador_debito_value) 
         #v_pression = float(self.controlador_pressao_value) 
+        
+        port_debit = find_com_port('USB-Serial Controller D')
+        if port_debit == None: 
+            config = dotenv_values('src/.env')
+            port_debit = f"{config['PORT_DEBIT']}"
 
         # Connexion au contrôleur de débit (par défaut channel=1), ajuster le port COM
-        instrument_debit = propar.instrument(find_com_port('USB-Serial Controller D'), channel=1) 
+        
+        instrument_debit = propar.instrument(port_debit, channel=1) 
         #instrument_pression = propar.instrument('COM5', channel=1)
         
         # Mettre le paramètre 12 à 0 pour contrôler par le bus RS232
+        
         instrument_debit.writeParameter(12, 0)
         #instrument_pression.writeParameter(12, 0)
         
         # Moduler la valeur du débit entre 0 et 32000 (0 - 100%)
-        #instrument_pression.writeParameter(9, int(v_pression))
+        
         instrument_debit.writeParameter(9, int(v_debit))
+        #instrument_pression.writeParameter(9, int(v_pression))
+        
         
         # Verification de la valeur envoyée précédemment
-        #print(instrument_pression.readParameter(9))
+        
         print(instrument_debit.readParameter(9))
+        #print(instrument_pression.readParameter(9))
+        
     
 
     def is_real_number(self, value):
