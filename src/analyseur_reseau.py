@@ -405,11 +405,6 @@ class MyApp(QMainWindow):
 
 
 
-
-
-
-
-
     def spectrum_normalization(self):
         myff.get_data_normalisation_spectrum()
 
