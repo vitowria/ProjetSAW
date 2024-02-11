@@ -1,6 +1,7 @@
 # ProjetSAW
 
-Botar resuminho do projet
+Project G1G2 from école centrale lille, that exploits the technology from the sensors SAW to determinate the concentration of a gaz in a controled environment.
+
 
 ## Installation
 
