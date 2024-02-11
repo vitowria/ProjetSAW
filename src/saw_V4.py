@@ -10,76 +10,56 @@ from analyseur_reseau import DataMonitor
 import serial
 import serial.tools.list_ports
 
-
 def list_serial_devices():
     devices = []
     for port in serial.tools.list_ports.comports():
         devices.append({
-            'device': port.device,
-            'name': port.name,
-            'description': port.description,
-            'hwid': port.hwid,
-                # Uncomment if you need to match by VID:PID
-                # 'vid': port.vid,
-                # 'pid': port.pid,
-            })
-        return devices
+                'device': port.device,
+                'name': port.name,
+                'description': port.description,
+                'hwid': port.hwid,
+                    # Uncomment if you need to match by VID:PID
+                    # 'vid': port.vid,
+                    # 'pid': port.pid,
+                })
+    return devices
 
 def find_com_port(expected_description):
     for device in list_serial_devices():
         if expected_description in device['description']:
             return device['device']
-    return None        
+    return None  
+
+      
 
 class MyApp(QMainWindow):
-
-    def create_label(self, text, font_size=10):
-        label = QLabel(text)
-        font = label.font()
-        font.setPointSize(font_size)
-        label.setFont(font)
-        return label
-
-    def create_button(self, text, on_click=None, background_color=None):
-        button = QPushButton(text)
-        if on_click:
-            button.clicked.connect(on_click)
-        if background_color:
-            button.setStyleSheet(f"background-color: {background_color};")
-        return button
-    
-    def create_line_edit(self, placeholder_text=''):
-        line_edit = QLineEdit()
-        line_edit.setPlaceholderText(placeholder_text)
-        return line_edit
-    
     
     def __init__(self, data_monitor=None):
         super().__init__()
+        self.data_monitor = data_monitor
+        self.initUI()
         if data_monitor is not None:
             data_monitor.warning_signal.connect(self.show_data_monitor_warning)
-
-        self.setWindowTitle("")
-        self.setGeometry(200, 200, 1200, 1000)
-
-        central_widget = QWidget(self)
-        self.setCentralWidget(central_widget)
-        layout = QHBoxLayout()
 
         try:
             self.fox = FieldFox()
         except ValueError as e:
             error_message = "Error: Can't find the FieldFox.\n Error's detail: " + str(e)
             QMessageBox.critical(self, "Error", error_message)
+
+    def initUI(self):
+        self.setWindowTitle("")
+        self.setGeometry(200, 200, 1200, 1000)
+
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        layout = QHBoxLayout()
         
-        # Example of refactored UI setup
         left_layout = QVBoxLayout()
         label_0 = QLabel("\n")
-        # Using the helper function to create a label
         label_ARconfiguracoes = self.create_label("Network Analyzer's Configurations", font_size=16)
         left_layout.addWidget(label_ARconfiguracoes)
 
-        # Simplified QLineEdit creation
         left_layout.addWidget(self.create_label('Enter center frequency'))
         self.input_AR_entry1 = self.create_line_edit()
         left_layout.addWidget(self.input_AR_entry1)
@@ -204,27 +184,39 @@ class MyApp(QMainWindow):
         self.AR_entry8 = None
         self.AR_entry9 = None
 
-        #alarm_layout = QVBoxLayout()
-        #layout.addLayout(alarm_layout)
-
-        #label_alarm1 = QLabel("Banana")
-        #alarm_layout.addWidget(label_alarm1)
-
-        #self.table_widget1 = QTableWidget(5, 2)
-        #alarm_layout.addWidget(self.table_widget1)
-        
-        #self.table_widget1.setColumnWidth(0, 70)
-        #self.table_widget1.setColumnWidth(1, 70)
-        
-        #self.table_widget1.setHorizontalHeaderLabels(["Amplitude", "Phase"])
-        #self.table_widget1.setVerticalHeaderLabels(["Very riped","Riped",'Normal',"Young", 'Very young'])
+        #self.test_button = self.create_button("Test Warning", self.test_warning)
+        #center_layout.addWidget(self.test_button)
 
         central_widget.setLayout(layout)
+
+    def create_label(self, text, font_size=10):
+        label = QLabel(text)
+        font = label.font()
+        font.setPointSize(font_size)
+        label.setFont(font)
+        return label
+
+    def create_button(self, text, on_click=None, background_color=None):
+        button = QPushButton(text)
+        if on_click:
+            button.clicked.connect(on_click)
+        if background_color:
+            button.setStyleSheet(f"background-color: {background_color};")
+        return button
+    
+    def create_line_edit(self, placeholder_text=''):
+        line_edit = QLineEdit()
+        line_edit.setPlaceholderText(placeholder_text)
+        return line_edit 
 
     def show_data_monitor_warning(self, message):
         QMessageBox.warning(self, "Data Monitor Warning", message)
 
+    def test_warning(self):
+        self.data_monitor.emit_warning()
 
+
+    
     def InitControlers(self):
         #variables to save the entry values for the controlers and arduino
 
@@ -244,7 +236,7 @@ class MyApp(QMainWindow):
         self.AR_entry8 = self.input_AR_entry8.text()
         self.AR_entry9 = self.input_AR_entry9.text()
 
-        self.debit_pression()
+        #self.debit_pression()
         self.InitArduino()
   
 
@@ -370,8 +362,8 @@ class MyApp(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    data_monitor = DataMonitor()
-    window = MyApp(data_monitor)
+    data_monitor = DataMonitor()  
+    window = MyApp(data_monitor)  
     window.show()
     sys.exit(app.exec())
 

@@ -52,7 +52,7 @@ class DataMonitor(QObject):
             self.counter = 0  # Reset o contador se as variações estiverem dentro dos limites
 
     def emit_warning(self):
-        self.warning_signal.emit("Warning: Data variation exceeded limits 4 times in a row.")
+        self.warning_signal.emit("Warning: Ventilate crate or transport container. Concentration exceeds 110ppb")
 
 class FieldFox():
     def __init__(self):
